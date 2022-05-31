@@ -17,6 +17,7 @@ class ListNode {
     }
 }
 
+// 创建连续的n个节点链表
 func createListNode(_ n: Int) -> ListNode {
     var last: ListNode?
     for i in 0..<n {
@@ -27,6 +28,19 @@ func createListNode(_ n: Int) -> ListNode {
     return last!
 }
 
+// 创建依据nums数组顺序的节点链表
+func createListNode(_ nums: [Int]) -> ListNode {
+    let count = nums.count
+    var last: ListNode?
+    for i in 0..<count {
+        let node = ListNode(nums[count - i - 1])
+        node.next = last
+        last = node
+    }
+    return last!
+}
+
+// 打印链表
 func printListNode(_ head: ListNode?) {
     var node = head
     while node != nil {
@@ -45,6 +59,17 @@ class TreeNode {
         self.right = nil
     }
 }
+
+// 创建二叉树 ???
+//func createTreeNode(_ nums: [Int?]) -> TreeNode {
+//    var node: TreeNode?
+//    var queue = nums
+//    while queue.count > 0 {
+//        if let val = queue.removeFirst() {
+//            let tnode = TreeNode(val)
+//        }
+//    }
+//}
 
 //extension Array {
 //    mutating func swap(at left: Int, right: Int) {
@@ -65,6 +90,7 @@ func findRepeatNumber(_ nums: [Int]) -> Int? {
             return num
         }
     }
+    
     return nil
 }
 
@@ -80,6 +106,7 @@ func findRepeatNumber(_ nums: [Int]) -> Int? {
  */
 func findNumberIn2DArray(_ matrix: [[Int]], _ target: Int) -> Bool {
     return matrix.flatMap({ $0 }).contains(target)
+    //return matrix.flatMap({ $0 }).first(where: { $0 == target }) != nil
 }
 
 // MARK: 剑指 Offer 05. 替换空格
@@ -88,7 +115,8 @@ func findNumberIn2DArray(_ matrix: [[Int]], _ target: Int) -> Bool {
  输出："We%20are%20happy."
  */
 func replaceSpace(_ s: String) -> String {
-    return s.replacingOccurrences(of: " ", with: "%20")
+    //return s.replacingOccurrences(of: " ", with: "%20")
+    return s.map({ String($0) == " " ? "%20": String($0) }).joined()
 }
 
 // MARK: 剑指 Offer 06. 从尾到头打印链表
@@ -159,6 +187,12 @@ func fib(_ n: Int) -> Int {
     }
     return val[n]
 }
+
+// MARK: 剑指 Offer 11. 旋转数组的最小数字
+func minArray(_ numbers: [Int]) -> Int {
+    return numbers.sorted(by: <).first!
+}
+
 
 // MARK: 剑指 Offer 16. 数值的整数次方
 func myPow(_ x: Double, _ n: Int) -> Double {
@@ -367,3 +401,315 @@ class MinStack {
     }
 }
 
+// MARK: 剑指 Offer 32 - I. 从上到下打印二叉树
+// BFS: 深度优先搜索, 一般使用队列先入先出方案处理
+func levelOrder(_ root: TreeNode?) -> [Int] {
+    guard let node = root else { return [] }
+    var res = [Int]()
+    var queue = [node]
+    while queue.count > 0 {
+        let tnode = queue.removeFirst()
+        res.append(tnode.val)
+        if let lnode = tnode.left {
+            queue.append(lnode)
+        }
+        if let rnode = tnode.right {
+            queue.append(rnode)
+        }
+    }
+    return res
+}
+
+// MARK: 剑指 Offer 32 - II. 从上到下打印二叉树 II
+func levelOrder1(_ root: TreeNode?) -> [[Int]] {
+    // 方法 1
+//    guard let node = root else { return [] }
+//    var queue = [node]
+//    var nodes = [[node]]
+//    while queue.count > 0 {
+//        // 此题关键在于处理层级关系
+//        let level = queue.count
+//        for _ in 0..<level {
+//            let tnode = queue.removeFirst()
+//            if let tl = tnode.left {
+//                queue.append(tl)
+//            }
+//            if let tr = tnode.right {
+//                queue.append(tr)
+//            }
+//        }
+//        if queue.count > 0 {
+//            nodes.append(queue)
+//        }
+//    }
+//    return nodes.map({ $0.map({ $0.val }) })
+    
+    // 方法 2
+    guard let node = root else { return [] }
+    var queue = [node]
+    var res = [[Int]]()
+    while queue.count > 0 {
+        let level = queue.count
+        var tmp = [Int]()
+        for _ in 0..<level {
+            let tnode = queue.removeFirst()
+            tmp.append(tnode.val)
+            if let tl = tnode.left {
+                queue.append(tl)
+            }
+            if let tr = tnode.right {
+                queue.append(tr)
+            }
+        }
+        res.append(tmp)
+    }
+    return res
+}
+
+// MARK: 剑指 Offer 32 - III. 从上到下打印二叉树 III
+func levelOrder2(_ root: TreeNode?) -> [[Int]] {
+    guard let node = root else { return [] }
+    var queue = [node]
+    var rnode = [[node]]
+    var lev = 0 // 记录层级
+    while !queue.isEmpty {
+        let lcount = queue.count // 记录层级元素个数
+        for _ in 0..<lcount {
+            let tnode = queue.removeFirst()
+            rnode.append([tnode])
+            if let tl = tnode.left {
+                queue.append(tl)
+            }
+            if let tr = tnode.right {
+                queue.append(tr)
+            }
+        }
+        if !queue.isEmpty {
+            // 保证相隔的层级顺序相反, 但是遍历的数据源不改变
+            if lev % 2 == 0 {
+                rnode.append(queue.reversed())
+            } else {
+                rnode.append(queue)
+            }
+        }
+        lev += 1
+    }
+    return rnode.map({ $0.map({ $0.val }) })
+}
+
+// MARK: 剑指 Offer 35. 复杂链表的复制
+// 同 138. 复制带随机指针的链表 (描述更清楚) https://leetcode.cn/problems/copy-list-with-random-pointer/
+class FZListNode {
+    var val: Int
+    var next: FZListNode?
+    var random: FZListNode?
+    init(_ val: Int) {
+        self.val = val
+        self.next = nil
+        self.random = nil
+    }
+}
+
+extension FZListNode: Hashable {
+    
+    static func == (lhs: FZListNode, rhs: FZListNode) -> Bool {
+        return lhs == rhs
+    }
+    
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(val)
+        hasher.combine(ObjectIdentifier(self))
+    }
+}
+
+//var hashMap = [Node:Node]()
+//func copyRandomList(_ head: Node?) -> Node? {
+//    guard let head = head else { return nil }
+//
+//    if hashMap[head] == nil {
+//        let node = Node.init(head.val)
+//        hashMap[head] = node
+//        node.next = copyRandomList(head.next)
+//        node.random = copyRandomList(head.random)
+//    }
+//    return hashMap[head]
+//}
+
+//  此方法时间空间不如上面/...
+func copyRandomList(_ head: FZListNode?) -> FZListNode? {
+    
+    // 排除空链表
+    guard head != nil else { return nil }
+    // 遍历链表,并依次创建新节点; 使用哈希表记录 [旧节点: 新节点] 对应关系
+    var hashMap = [FZListNode: FZListNode]()
+    var node = head
+    while node != nil {
+        let newHead = FZListNode(node!.val)
+        newHead.next = node?.next
+        newHead.random = node?.random
+        
+        hashMap[node!] = newHead
+        node = node?.next
+    }
+    
+    // 修改 新节点的next和random指向
+    node = head
+    while node != nil {
+        let newNode = hashMap[node!]
+        if let next = node?.next {
+            newNode?.next = hashMap[next]
+        }
+        if let random = node?.random {
+            newNode?.random = hashMap[random]
+        }
+        node = node?.next
+    }
+    return hashMap[head!]
+}
+
+// MARK: 剑指 Offer 50. 第一个只出现一次的字符
+func firstUniqChar(_ s: String) -> Character {
+//    var chs = [String]()
+//    var map = [String: Int]()
+//    for ch in s {
+//        let st = String(ch)
+//        if !chs.contains(st) {
+//            chs.append(st)
+//            map[st] = 1
+//        } else {
+//            map[st] = map[st]! + 1
+//        }
+//    }
+//    for st in chs {
+//        if map[st] == 1 {
+//            return Character(st)
+//        }
+//    }
+//    return Character(" ")
+
+    var hashMap = [Int]()
+    for _ in 0..<26 {
+        hashMap.append(0)
+    }
+    
+    for ch in s {
+        let idx = Int(ch.asciiValue! - 96) - 1
+        let value = hashMap[idx]
+        hashMap[idx] = value + 1
+    }
+    for ch in s {
+        let idx = Int(ch.asciiValue! - 96) - 1
+        if hashMap[idx] == 1 {
+            return Character(String(ch))
+        }
+    }
+    return Character(" ")
+}
+
+// MARK: 剑指 Offer 53 - I. 在排序数组中查找数字 I
+func search(_ nums: [Int], _ target: Int) -> Int {
+    //return nums.filter({ $0 == target }).count
+    var left = 0
+    var right = nums.count - 1
+    while left <= right {
+        let m = (left + right) / 2
+        let mid = nums[m]
+        if mid >= target { // 找左边界下标
+            right = m - 1
+        } else {
+            left = m + 1
+        }
+    }
+    
+    if nums[left] != target { return 0 }
+    
+    var L = left
+    var R = nums.count - 1
+    while L <= R {
+        let m = (L + R) / 2
+        let mid = nums[m]
+        if mid <= target { // 找右边界下标
+            L = m + 1
+        } else {
+            R = m - 1
+        }
+    }
+    return R - left + 1
+}
+
+// MARK: 剑指 Offer 53 - II. 0～n-1中缺失的数字
+func missingNumber(_ nums: [Int]) -> Int {
+//    let last = nums.last!
+//    let first = nums.first!
+//    if nums.count == 1 && first != 0 { return 0 }
+//    for index in 0...last {
+//        if index != nums[index] {
+//            return index
+//        }
+//    }
+//    return last + 1
+    
+//    var left = 0
+//    let right = nums.last!
+//    while left <= right {
+//        if left != nums[left] {
+//            break
+//        }
+//        left += 1
+//    }
+//    return nums.first != 0 ? 0: left
+
+    var left = 0
+    var right = nums.count - 1
+    while left <= right {
+        let mid = (left + right) / 2
+        if mid == nums[mid] {
+            left = mid + 1
+        } else {
+            right = mid - 1
+        }
+    }
+    return left
+}
+
+// MARK: 剑指 Offer 58 - II. 左旋转字符串
+func reverseLeftWords(_ s: String, _ n: Int) -> String {
+//    var lefts = [String]()
+//    var rights = [String]()
+//    for (offset, element) in s.enumerated() {
+//        if offset < n {
+//            lefts.append(String(element))
+//        } else {
+//            rights.append(String(element))
+//        }
+//    }
+//    rights.append(contentsOf: lefts)
+//    return rights.joined()
+//    return String(s.dropFirst(n) + s.prefix(n))
+    return String(s.suffix(s.count - n) + s.prefix(n))
+}
+
+// MARK: 剑指 Offer 63. 股票的最大利润
+func maxProfit(_ prices: [Int]) -> Int {
+//    // 暴力求解
+//    var offsets = [Int]()
+//    for i in 0..<prices.count {
+//        for j in (i + 1)..<prices.count {
+//            let offset = prices[j] - prices[i]
+//            if offset > 0 {
+//                offsets.append(offset)
+//            }
+//        }
+//    }
+//    guard offsets.count > 0 else { return 0 }
+//    return offsets.sorted(by: <).last!
+    
+    // 动态规划
+    var profit = 0
+    var defVal = Int.max
+    for price in prices {
+        defVal = min(defVal, price)
+        profit = max(profit, price - defVal)
+    }
+    return profit
+}
