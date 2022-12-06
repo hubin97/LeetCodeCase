@@ -193,6 +193,40 @@ func minArray(_ numbers: [Int]) -> Int {
     return numbers.sorted(by: <).first!
 }
 
+// MARK: 剑指 Offer 14- I. 剪绳子
+//func cuttingRope(_ n: Int) -> Int {
+//
+//}
+
+// MARK: 剑指 Offer 15. 二进制中1的个数
+func hammingWeight(_ n: Int) -> Int {
+    //return n.nonzeroBitCount
+    //return String(n, radix: 2).filter({ $0 == "1" }).count
+    
+//    var num = n
+//    var cnt = 0
+//    while num != 0 {
+//        cnt += num & 1
+//        num = num >> 1
+//    }
+//    return cnt
+    
+//    var num = n
+//    var cnt = 0
+//    while num != 0 {
+//        cnt += num % 2
+//        num = num / 2
+//    }
+//    return cnt
+  
+    var num = n
+    var cnt = 0
+    while num != 0 {
+        cnt += 1
+        num = num & (num - 1)
+    }
+    return cnt
+}
 
 // MARK: 剑指 Offer 16. 数值的整数次方
 func myPow(_ x: Double, _ n: Int) -> Double {
@@ -247,26 +281,31 @@ func printNumbers(_ n: Int) -> [Int] {
 }
 
 // MARK: 剑指 Offer 18. 删除链表的节点
+/**
+ 解题思路：
+
+ 本题删除值为 val 的节点分需为两步：定位节点、修改引用。
+
+ 定位节点： 遍历链表，直到 head.val == val 时跳出，即可定位目标节点。
+ 修改引用： 设节点 cur 的前驱节点为 pre ，后继节点为 cur.next ；则执行 pre.next = cur.next ，即可实现删除 cur 节点。
+ */
 func deleteNode(_ head: ListNode?, _ val: Int) -> ListNode? {
-    if head?.val == val {
-        return head?.next
+    if head?.val == val { return head?.next }
+    
+    // 前驱节点
+    var pre = head
+    var cur = head?.next
+    
+    while cur != nil && cur?.val != val {
+        pre = cur
+        cur = cur?.next
     }
-    // 遍历使用
-    var node = head
-    // 存放头结点使用
-    let newNode = ListNode(0)
-    newNode.next = head
-    // 修改使用
-    var tmpNode: ListNode? = newNode
-    while node != nil && node?.val != val {
-        tmpNode = node
-        node = node?.next
+    
+    // 修改引用 前驱节点next -> 后继节点next
+    if cur != nil {
+        pre?.next = cur?.next
     }
-    if node != nil {
-        tmpNode?.next = node?.next
-    }
-    //printListNode(newNode.next)
-    return newNode.next
+    return head
 }
 
 // MARK: 剑指 Offer 21. 调整数组顺序使奇数位于偶数前面
@@ -379,6 +418,18 @@ func mergeTwoLists(_ l1: ListNode?, _ l2: ListNode?) -> ListNode? {
     }
     node?.next = node1 == nil ? node2: node1
     return newHead?.next
+}
+
+// MARK: 剑指 Offer 28. 对称的二叉树
+func isSymmetric(_ root: TreeNode?) -> Bool {
+    guard let tree = root else { return true }
+    return checkTreeNode(tree.left, tree.right)
+}
+
+func checkTreeNode(_ l: TreeNode?, _ r: TreeNode?) -> Bool {
+    if l == nil && r == nil { return true }
+    if l == nil || r == nil { return false }
+    return l?.val == r?.val && checkTreeNode(l?.left, r?.right) && checkTreeNode(r?.left, l?.right)
 }
 
 // MAARK: 剑指 Offer 30. 包含min函数的栈
@@ -567,6 +618,208 @@ func copyRandomList(_ head: FZListNode?) -> FZListNode? {
     return hashMap[head!]
 }
 
+// MARK: 剑指 Offer 39. 数组中出现次数超过一半的数字
+func majorityElement(_ nums: [Int]) -> Int {
+    // 1. hashmap
+//    let count = nums.count
+//    var hashMap: [Int: Int] = [:]
+//    for num in nums {
+//        if hashMap.keys.contains(num) {
+//            hashMap[num]! += 1
+//        } else {
+//            hashMap[num] = 1
+//        }
+//    }
+//    return hashMap.filter({ $0.value > count/2 }).map({ $0.key }).first!
+    
+    //2. 摩尔投票
+    /// 投票法简单来说就是不同则抵消，占半数以上的数字必然留到最后。 摩尔投票法找的其实不是众数，而是占一半以上的数
+    /// https://leetcode.cn/problems/shu-zu-zhong-chu-xian-ci-shu-chao-guo-yi-ban-de-shu-zi-lcof/solution/mian-shi-ti-39-shu-zu-zhong-chu-xian-ci-shu-chao-3/
+    var x = 0, votes = 0
+    for num in nums {
+        if votes == 0 {
+            x = num
+        }
+        votes += x == num ? 1: -1
+    }
+    return x
+}
+
+// MARK: 剑指 Offer 40. 最小的k个数
+// https://blog.51cto.com/u_8392210/category9
+// 桶排序 https://blog.51cto.com/u_8392210/3731584
+func getLeastNumbers(_ arr: [Int], _ k: Int) -> [Int] {
+    //return Array<Int>(arr.sorted().prefix(k))
+    //return Array(arr.sorted()[0..<k])
+    
+    // 选择排序 5-54
+    var nums = arr
+    for i in 0..<nums.count - 1 {
+        var min = i
+        for j in (i + 1)..<nums.count {
+            if nums[min] > nums[j] {
+                min = j
+            }
+        }
+        nums.swapAt(i, min)
+    }
+    return Array(nums[0..<k])
+
+//    // 冒泡排序  5-5
+//    var nums = arr
+//    for i in 0..<nums.count - 1 {
+//        for j in 0..<nums.count - i - 1 {
+//            if nums[j] > nums[j + 1] {
+//                nums.swapAt(j, j + 1)
+//            }
+//        }
+//    }
+//    return Array(nums[0..<k])
+
+//    // 桶排序 空间换时间
+//    var nums = arr
+//    var maxVal = nums.first!
+//    for num in nums {
+//        maxVal = max(num, maxVal)
+//    }
+//    let size = maxVal + 1
+//    var buckets = Array(repeating: 0, count: size)
+//    for num in nums {
+//        if buckets[num] >= 0 {
+//            buckets[num] += 1
+//        } else {
+//            buckets[num] = 0
+//        }
+//    }
+//    var sort: [Int] = []
+//    for i in 0..<buckets.count where buckets[i] > 0 {
+//        if buckets[i] > 1 {
+//            sort.append(contentsOf: Array(repeating: i, count: buckets[i]))
+//        } else {
+//            sort.append(i)
+//        }
+//    }
+//    return Array(sort[0..<k])
+}
+
+// MARK: 剑指 Offer 41. 数据流中的中位数
+class MedianFinder {
+    
+    var nums: [Int] = []
+    init() {}
+    
+    func addNum(_ num: Int) {
+        nums.append(num)
+        nums.sort(by: <)
+    }
+    
+    func findMedian() -> Double? {
+        guard !nums.isEmpty else { return nil }
+        guard nums.count > 1 else { return Double(nums.first!) }
+        let j = nums.count / 2
+        if nums.count % 2 == 0 {
+            let k = nums.count / 2 - 1
+            return Double(nums[j] + nums[k]) / 2
+        }
+        return Double(nums[j])
+    }
+}
+
+// MARK: 剑指 Offer 42. 连续子数组的最大和
+/**
+ https://leetcode.cn/problems/lian-xu-zi-shu-zu-de-zui-da-he-lcof/solution/lian-xu-zi-shu-zu-de-zui-da-he-by-leetco-tiui/
+ https://leetcode.cn/problems/lian-xu-zi-shu-zu-de-zui-da-he-lcof/solution/mian-shi-ti-42-lian-xu-zi-shu-zu-de-zui-da-he-do-2/
+ */
+func maxSubArray(_ nums: [Int]) -> Int {
+    guard !nums.isEmpty else { return 0 }
+    let count = nums.count
+    var dp = Array.init(repeating: 0, count: count)
+    dp[0] = nums.first!
+    var res = dp[0]
+    for i in 1..<count {
+        dp[i] = max(dp[i - 1] + nums[i], nums[i])
+        res = max(dp[i], res)
+    }
+    return res
+}
+
+// MARK: 剑指 Offer 45. 把数组排成最小的数
+func minNumber(_ nums: [Int]) -> String {
+    return nums.map({ String($0) }).sorted(by: { Int($0 + $1)! < Int($1 + $0)! }).joined()
+}
+
+// MARK: 剑指 Offer 46. 把数字翻译成字符串
+// 相关题: 70:爬楼梯; 91:解码问题 198:打家劫舍
+func translateNum(_ num: Int) -> Int {
+    let nums = String(num).map({ String($0) })
+    let count = nums.count
+    guard count > 1 else { return 1 }
+    var dp = Array(repeating: 0, count: count)
+    dp[0] = 1
+    for i in 1..<count {
+        dp[i] = dp[i - 1]
+        if let s = Int(nums[i - 1]), let g = Int(nums[i]) {
+            let cnum = 10 * s + g
+            if cnum > 9 && cnum < 26 {
+                if i >= 2 {
+                    dp[i] += dp[i - 2]
+                } else {
+                    dp[i] += 1
+                }
+            }
+        }
+    }
+    return dp[count - 1]
+}
+
+// MARK: 剑指 Offer 47. 礼物的最大价值
+func maxValue(_ grid: [[Int]]) -> Int {
+    guard let meta = grid.first, !meta.isEmpty else { return 0 }
+    let row = grid.count
+    let col = meta.count
+    var dp = Array(repeating: Array(repeating: 0, count: col), count: row)
+    dp[0][0] = grid[0][0]
+    var res = dp[0][0]
+    for i in 0..<row {
+        for j in 0..<col {
+            // 排除首个dp
+            if i == 0 && j == 0 { continue }
+            // dp[i][j]对比它的左边一项或者上面一项
+            if i > 0 { // 规避越界问题
+                dp[i][j] = max(dp[i][j], dp[i - 1][j] + grid[i][j])
+            }
+            if j > 0 { // 规避越界问题
+                dp[i][j] = max(dp[i][j], dp[i][j - 1] + grid[i][j])
+            }
+            res = max(dp[i][j], res)
+        }
+    }
+    return res
+}
+
+// MARK: 剑指 Offer 48. 最长不含重复字符的子字符串
+func lengthOfLongestSubstring(_ s: String) -> Int {
+    guard !s.isEmpty else { return 0 }
+    let array = s.map({ String($0) })
+    let count = array.count
+    guard count > 1 else { return 1 }
+    
+    // 滑动窗口
+    var res = 0
+    for i in 0..<count {
+        var j = i + 1
+        var tmp = 0
+        while j < count && !array[i..<j].contains(array[j]) {
+            j += 1
+        }
+        print(array[i..<j])
+        // 计算切片长度, 长度一定会 >= 1
+        tmp = tmp < j - i ? j - i: tmp + 1
+        res = max(res, tmp)
+    }
+    return res
+}
+
 // MARK: 剑指 Offer 50. 第一个只出现一次的字符
 func firstUniqChar(_ s: String) -> Character {
 //    var chs = [String]()
@@ -604,6 +857,25 @@ func firstUniqChar(_ s: String) -> Character {
         }
     }
     return Character(" ")
+}
+
+// MARK: 剑指 Offer 52. 两个链表的第一个公共节
+// 160. 相交链表
+// 输入：intersectVal = 8, listA = [4,1,8,4,5], listB = [5,0,1,8,4,5], skipA = 2, skipB = 3
+//[5,0,1,8,4,5,4,1,8,4,5]
+//[4,1,8,4,5,5,0,1,8,4,5]
+// 输入：intersectVal = 2, listA = [0,9,1,2,4], listB = [3,2,4], skipA = 3, skipB = 1
+//[0,9,1,2,4,3,2,4]
+//[3,2,4,0,9,1,2,4]
+func getIntersectionNode(_ headA: ListNode?, _ headB: ListNode?) -> ListNode? {
+    // nodeA 有毒 ???
+    var currA = headA
+    var currB = headB
+    while currA !== currB {
+        currA = (currA != nil) ? currA?.next: headB
+        currB = (currB != nil) ? currB?.next: headA
+    }
+    return currA
 }
 
 // MARK: 剑指 Offer 53 - I. 在排序数组中查找数字 I
@@ -672,6 +944,109 @@ func missingNumber(_ nums: [Int]) -> Int {
     return left
 }
 
+// MARK: 剑指 Offer 55 - I. 二叉树的深度
+func maxDepth(_ root: TreeNode?) -> Int {
+    // BFS
+//    guard let tree = root else { return 0 }
+//    var queue: [TreeNode] = [tree]
+//    var depth = 0
+//    while !queue.isEmpty {
+//        var bunch = queue.count
+//        while bunch > 0 {
+//            let node = queue.removeFirst()
+//            if let leftChild = node.left {
+//                queue.append(leftChild)
+//            }
+//            if let rightChild = node.right {
+//                queue.append(rightChild)
+//            }
+//            bunch -= 1
+//        }
+//        depth += 1
+//    }
+//    return depth
+
+    // DFS
+    guard let tree = root else { return 0 }
+    return max(maxDepth(tree.left), maxDepth(tree.right)) + 1
+}
+
+// MARK: 剑指 Offer 55 - II. 平衡二叉树
+func isBalanced(_ root: TreeNode?) -> Bool {
+    guard let tree = root else { return true }
+    return abs(maxDepth(tree.left) - maxDepth(tree.right)) < 2 && isBalanced(tree.left) && isBalanced(tree.right)
+}
+
+// MARK: 剑指 Offer 56 - I. 数组中数字出现的次数
+/// 位运算怎么做???
+func singleNumbers(_ nums: [Int]) -> [Int] {
+    var dict: [Int: Int] = [:]
+    for num in nums {
+        if dict.keys.contains(num) {
+            dict[num]! += 1
+        } else {
+            dict[num] = 1
+        }
+    }
+    return dict.filter({ $0.value == 1 }).map({ $0.key })
+}
+
+// MARK: 剑指 Offer 57. 和为s的两个数字
+func twoSum(_ nums: [Int], _ target: Int) -> [Int] {
+    // 超时
+//    var arr = [Int]()
+//    for num in nums {
+//        if nums.contains(target - num) {
+//            arr = [num, target - num]
+//            break
+//        }
+//    }
+//    return arr
+    
+    // 双指针
+//    var L = 0
+//    var R = nums.count - 1
+//    while L < R {
+//        if nums[L] + nums[R] > target {
+//            R -= 1
+//        } else if nums[L] + nums[R] < target {
+//            L += 1
+//        } else {
+//            return [nums[L], nums[R]]
+//        }
+//    }
+//    return []
+    
+    // 优化  用例跑完 时间上快 3-400ms
+    var L = 0
+    var R = nums.count - 1
+    while nums[L] + nums[R] != target && L < R {
+        if nums[L] + nums[R] > target {
+            R -= 1
+        } else {
+            L += 1
+        }
+    }
+    return [nums[L], nums[R]]
+}
+
+// MARK: 剑指 Offer 58 - I. 翻转单词顺序
+func reverseWords(_ s: String) -> String {
+    // 原生方法求解
+    return s.split(separator: " ").map({ String( $0) }).reversed().joined(separator: " ")
+    
+    // 双指针
+//    var arr = s.split(separator: " ").map({ String( $0) })
+//    var l = 0
+//    var r = arr.count - 1
+//    while l < r {
+//        arr.swapAt(l, r)
+//        l += 1
+//        r -= 1
+//    }
+//    return arr.joined(separator: " ")
+}
+
 // MARK: 剑指 Offer 58 - II. 左旋转字符串
 func reverseLeftWords(_ s: String, _ n: Int) -> String {
 //    var lefts = [String]()
@@ -687,6 +1062,24 @@ func reverseLeftWords(_ s: String, _ n: Int) -> String {
 //    return rights.joined()
 //    return String(s.dropFirst(n) + s.prefix(n))
     return String(s.suffix(s.count - n) + s.prefix(n))
+}
+
+// MARK: 剑指 Offer 61. 扑克牌中的顺子
+func isStraight(_ nums: [Int]) -> Bool {
+    // 1. 去重  2. maxVal - minVal < 5
+    let arr = nums.filter({ $0 != 0 }).sorted()
+    if Set(arr).count < arr.count { return false }
+    return arr.last! - arr.first! < 5
+}
+
+// MARK: 剑指 Offer 62. 圆圈中最后剩下的数字
+// https://blog.csdn.net/u011500062/article/details/72855826
+func lastRemaining(_ n: Int, _ m: Int) -> Int {
+    var p = 0
+    for i in 2...n {
+        p = (p + m) % i
+    }
+    return p + 1
 }
 
 // MARK: 剑指 Offer 63. 股票的最大利润
@@ -712,4 +1105,50 @@ func maxProfit(_ prices: [Int]) -> Int {
         profit = max(profit, price - defVal)
     }
     return profit
+}
+
+// MARK: 剑指 Offer 64. 求1+2+…+n
+var res = 0
+func sumNums(_ n: Int) -> Int {
+    //return Array(1...n).reduce(0, +)
+    _ = n > 1 && sumNums(n - 1) > 0
+    res += n
+    return res
+}
+
+// MARK: 剑指 Offer 65. 不用加减乘除做加法
+//func add(_ a: Int, _ b: Int) -> Int {
+//
+//}
+
+// MARK: 剑指 Offer 66. 构建乘积数组
+func constructArr(_ a: [Int]) -> [Int] {
+    // 暴力求解 不出意外超时
+//    var nums: [Int] = []
+//    for i in 0..<a.count {
+//        var res = 1
+//        for j in 0..<a.count {
+//            if i == j { continue }
+//            res *= a[j]
+//        }
+//        nums.append(res)
+//    }
+//    return nums
+    
+    let cut = a.count
+    guard cut > 0 else { return [] }
+    var dp = Array(repeating: 0, count: cut)
+    dp[0] = 1
+    // 对角线分区 -> 左下角
+    for i in 1..<cut {
+        dp[i] = dp[i - 1] * a[i - 1]
+    }
+    // 右上角
+    var tmp = 1
+    for j in 1..<cut {
+        let idx = cut - j - 1
+        tmp *= a[idx + 1]
+        dp[idx] *= tmp
+    }
+    return dp
 }
